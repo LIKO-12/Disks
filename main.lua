@@ -172,11 +172,11 @@ function love.run()
   os.execute("mkdir "..ghDir)
   print("Created directory: "..ghDir)
   
-  os.execute("mkdir "..ghDir.."Data/")
-  print("Created directory: "..ghDir.."Data/")
+  os.execute("mkdir "..ghDir.."data/")
+  print("Created directory: "..ghDir.."data/")
   
-  local function write(path,data)
-    local file, err = io.open(ghDir..path,"wb")
+  local function write(path,data,mode)
+    local file, err = io.open(ghDir..path,mode or "wb")
     if not file then
       print("Failed to open file '"..file.."': "..err)
       return true
@@ -189,8 +189,8 @@ function love.run()
     print("Wrote file: "..path)
   end
   
-  local function writeData(path,data)
-    local file, err = io.open(ghDir.."Data/"..path,"wb")
+  local function writeData(path,data,mode)
+    local file, err = io.open(ghDir.."data/"..path,mode or "wb")
     if not file then
       print("Failed to open file '"..file.."': "..err)
       return true
@@ -203,7 +203,7 @@ function love.run()
     print("Wrote file: "..path)
   end
   
-  writeData("GamesList.txt",table.concat(GamesNames,","))
+  writeData("games.txt",table.concat(GamesNames,","))
   
   for k,gamename in ipairs(GamesNames) do
     
@@ -211,6 +211,32 @@ function love.run()
     writeData(gamename..".lk12",GamesData[gamename])
     
   end
+  
+  os.execute("cp -r -v -f "..love.filesystem.getSource().."/WEB/* "..ghDir)
+  os.execute("cp -r -v -f "..love.filesystem.getSource().."/Games "..ghDir.."games")
+    
+  local htmlTemplate = [[    <div class="responsive">
+      <div class="gallery">
+        <a href="games/GAMENAME.png" download="GAMENAME">
+          <img src="games/GAMENAME.png" alt="GAMENAME" width="256" height="256">
+        </a>
+        <div class="desc">GAMENAME</div>
+      </div>
+    </div>]]
+  
+  local htmlInsert = {}
+  
+  for k,gamename in ipairs(GamesNames) do
+    htmlInsert[k] = htmlTemplate:gsub("GAMENAME",gamename)
+  end
+  
+  htmlInsert = table.concat(htmlInsert,"\n\n")
+  
+  local htmlData = love.filesystem.read("/WEB/index.html")
+  
+  htmlData = htmlData:gsub("<!%-%- TOOLKIT INSERT HERE %-%->",htmlInsert)
+  
+  write("index.html",htmlData,"wb+")
   
   print("--============================================--")
   print("--================Job Finished================--")
