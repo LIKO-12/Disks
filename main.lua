@@ -1,5 +1,10 @@
 --LIKO-12 Games Toolchain--
 
+local bit = require("bit") --Load BitOp library.
+
+local band, bor, lshift = bit.band, bit.bor, bit.lshift
+local strChar = string.char
+
 --PICO-8 Palette
 local palette = {
   {0,0,0,255}, --Black 1
@@ -19,6 +24,13 @@ local palette = {
   {241,118,166,255}, --Pink 15
   {252,204,171,255} --Human Skin 16
 }
+
+--Clear the last 2 bits from each color values.
+for k1,col in ipairs(palette) do
+  for k2,v in ipairs(col) do
+    palette[k1][k2] = band(v,252)
+  end
+end
 
 function love.run()
   print("--============================================--")
@@ -61,6 +73,70 @@ function love.run()
   end
   
   print("\n# Scanning Label Images #\n")
+  
+  local GamesLabels = {}
+  
+  --LabelX, LabelY = 32,120
+  
+  for gamename, gameimg in pairs(GamesImages) do
+    
+    local Data, DataPos = {}, 1 --The image data (in binary)
+    
+    for y=120,120+127 do
+      for x=32,32+191, 2 do
+        --Get the first pixel color
+        local r1,g1,b1,a1 = gameimg:getPixel(x,y)
+        
+        --Clear the last 2 bits
+        r1,g1,b1,a1 = band(r1,252), band(g1,252), band(b1,252), band(a1,252)
+        
+        --Try to findout the color id
+        local Color1 = 0
+        
+        for id, color in ipairs(palette) do
+          local cr, cg, cb, ca = unpack(color)
+          
+          if r1 == cr and g1 == cg and b1 == cb and a1 == ca then
+            Color1 = id-1
+            break
+          end
+        end
+        
+        --Get the second pixel color
+        local r2,g2,b2,a2 = gameimg:getPixel(x+1,y)
+        
+        --Clear the last 2 bits
+        r2,g2,b2,a2 = band(r2,252), band(g2,252), band(b2,252), band(a2,252)
+        
+        --Try to findout the color id
+        local Color2 = 0
+        
+        for id, color in ipairs(palette) do
+          local cr, cg, cb, ca = unpack(color)
+          
+          if r2 == cr and g2 == cg and b2 == cb and a2 == ca then
+            Color2 = id-1
+            break
+          end
+        end
+        
+        --Convert the colors to binary
+        Color1 = lshift(Color1,4)
+        local Color = bor(Color1, Color2)
+        
+        Data[DataPos] = strChar(Color)
+        DataPos = DataPos + 1
+      end
+    end
+    
+    Data = table.concat(Data)
+    
+    GamesLabels[gamename] = Data
+    
+    print("Scanned '"..gamename.."'")
+  end
+  
+  
   
   return 0
 end
