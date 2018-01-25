@@ -47,6 +47,7 @@ function love.run()
   print("# Loading Games Images #\n")
   
   local GamesImages = {}
+  local GamesNames = {}
   
   local files_list = love.filesystem.getDirectoryItems("/Games/")
   for k, filename in ipairs(files_list) do
@@ -66,6 +67,8 @@ function love.run()
           return 1
         end
         
+        table.insert(GamesNames, gamename)
+        
         GamesImages[gamename] = image
         print("Loaded '"..gamename.."'")
       end
@@ -75,8 +78,6 @@ function love.run()
   print("\n# Scanning Label Images #\n")
   
   local GamesLabels = {}
-  
-  --LabelX, LabelY = 32,120
   
   for gamename, gameimg in pairs(GamesImages) do
     
@@ -136,7 +137,84 @@ function love.run()
     print("Scanned '"..gamename.."'")
   end
   
+  print("\n# Reading Games Data #\n")
   
+  local GamesData = {}
+    
+  for gamename, gameimg in pairs(GamesImages) do
+    
+    local Data, DataPos = {}, 1
+    
+    gameimg:mapPixel(function(x,y, r,g,b,a)
+      
+      r,g,b,a = band(r,3), band(g,3), band(b,3), band(a,3)
+      r,g,b = lshift(r,6), lshift(g,4), lshift(b,2)
+      
+      local byte = bor(r,g,b,a)
+      
+      Data[DataPos] = strChar(byte)
+      DataPos = DataPos + 1
+      
+      return r,g,b,a
+      
+    end)
+    
+    GamesData[gamename] = table.concat(Data)
+    
+    print("Read '"..gamename.."'")
+    
+  end
+  
+  print("\n# Generating GH-Pages #\n")
+  
+  local ghDir = love.filesystem.getSource().."/GH-Pages/"
+  
+  os.execute("mkdir "..ghDir)
+  print("Created directory: "..ghDir)
+  
+  os.execute("mkdir "..ghDir.."Data/")
+  print("Created directory: "..ghDir.."Data/")
+  
+  local function write(path,data)
+    local file, err = io.open(ghDir..path,"wb")
+    if not file then
+      print("Failed to open file '"..file.."': "..err)
+      return true
+    end
+    
+    file:write(data)
+    file:flush()
+    file:close()
+    
+    print("Wrote file: "..path)
+  end
+  
+  local function writeData(path,data)
+    local file, err = io.open(ghDir.."Data/"..path,"wb")
+    if not file then
+      print("Failed to open file '"..file.."': "..err)
+      return true
+    end
+    
+    file:write(data)
+    file:flush()
+    file:close()
+    
+    print("Wrote file: "..path)
+  end
+  
+  writeData("GamesList.txt",table.concat(GamesNames,","))
+  
+  for k,gamename in ipairs(GamesNames) do
+    
+    writeData(gamename..".label",GamesLabels[gamename])
+    writeData(gamename..".lk12",GamesData[gamename])
+    
+  end
+  
+  print("--============================================--")
+  print("--================Job Finished================--")
+  print("--============================================--")
   
   return 0
 end
