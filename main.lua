@@ -217,7 +217,7 @@ function love.run()
     
   local htmlTemplate = [[    <div class="responsive">
       <div class="gallery">
-        <a href="games/GAMENAME.png" download="GAMENAME">
+        <a href="games/GAMENAME.png" download="GAMENAME.png">
           <img src="games/GAMENAME.png" alt="GAMENAME" width="256" height="256">
         </a>
         <div class="desc">GAMENAME</div>
