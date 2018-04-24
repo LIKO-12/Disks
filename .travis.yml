@@ -15,7 +15,7 @@ install:
   - sudo apt-get -qq update
   - apt-cache show love
   - apt-cache showpkg love
-  - sudo apt-get install -y love=0.10.2
+  - sudo apt-get install -y love
   - git clone -b Toolchain https://github.com/RamiLego4Game/LIKO-12-Disks.git ../Toolchain
 
 before_script:
