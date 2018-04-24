@@ -1,1 +1,1 @@
-Batteryman,Birthday,Bump Demo,GhostMark,Mines,Pong,Snake,Space Blocks,TicTacToe,bump,chiptune,circles,colorstorm,cripple,cube,ellipses,fire,gamething,grid,joytest,mathcircles,mpyr,noise,palette,piano,plasma,poly,pyr,radius,rainbow,ripple,roto,triangles,tunnel,tunnel2
+Batteryman,Birthday,GhostMark,MazeZam,Mines,Pong,Snake,SpaceBlocks,TicTacToe,bump,chiptune,circles,colorstorm,cripple,cube,ellipses,fire,gamething,grid,joytest,mathcircles,mpyr,noise,palette,piano,plasma,poly,pyr,radius,rainbow,ripple,roto,triangles,tunnel,tunnel2
