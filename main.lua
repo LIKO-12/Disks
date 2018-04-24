@@ -3,6 +3,7 @@
 local bit = require("bit") --Load BitOp library.
 
 local band, bor, lshift = bit.band, bit.bor, bit.lshift
+local floor = math.floor
 local strChar = string.char
 
 --PICO-8 Palette
@@ -32,16 +33,20 @@ for k1,col in ipairs(palette) do
   end
 end
 
+local function runLoop(exitCode)
+  return function() return (exitCode or 0) end
+end
+
 function love.run()
   print("--============================================--")
-  print("--========LIKO-12 Games Toolchain V1.0========--")
+  print("--========LIKO-12 Games Toolchain V1.1========--")
   print("--============================================--")
   
   print("")
   
-  if not love.filesystem.exists("/Games") then
+  if not love.filesystem.getInfo("/Games") then
     print("!!! The games folder doesn't exist !!!\n")
-    return 1
+    return runLoop(1)
   end
   
   print("# Loading Games Images #\n")
@@ -52,19 +57,19 @@ function love.run()
   local files_list = love.filesystem.getDirectoryItems("/Games/")
   for k, filename in ipairs(files_list) do
     local filepath = "/Games/"..filename
-    if love.filesystem.isFile(filepath) then
+    if love.filesystem.getInfo(filepath).type == "file" then
       if filename:sub(-4,-1) == ".png" then
         local gamename = filename:sub(1,-5)
         local ok, image = pcall(love.image.newImageData,filepath)
         if not ok then
           print("!!! Failed to load '"..gamename.."' !!!",image,"\n")
-          return 1
+          return runLoop(1)
         end
         
         local imageWidth, imageHeight = image:getDimensions()
         if imageWidth ~= 256 or imageHeight ~= 256 then
           print("!!! Invalid image size '"..gamename.."' !!!",imageWidth.."x"..imageHeight.."\n")
-          return 1
+          return runLoop(1)
         end
         
         table.insert(GamesNames, gamename)
@@ -87,6 +92,7 @@ function love.run()
       for x=32,32+191, 2 do
         --Get the first pixel color
         local r1,g1,b1,a1 = gameimg:getPixel(x,y)
+        r1,g1,b1,a1 = floor(r1), floor(g1), floor(b1), floor(a1)
         
         --Clear the last 2 bits
         r1,g1,b1,a1 = band(r1,252), band(g1,252), band(b1,252), band(a1,252)
@@ -105,6 +111,7 @@ function love.run()
         
         --Get the second pixel color
         local r2,g2,b2,a2 = gameimg:getPixel(x+1,y)
+        r2,g2,b2,a2 = floor(r2), floor(g2), floor(b2), floor(a2)
         
         --Clear the last 2 bits
         r2,g2,b2,a2 = band(r2,252), band(g2,252), band(b2,252), band(a2,252)
@@ -146,6 +153,8 @@ function love.run()
     local Data, DataPos = {}, 1
     
     gameimg:mapPixel(function(x,y, r,g,b,a)
+    
+      r,g,b,a = floor(r), floor(g), floor(b), floor(a)
       
       r,g,b,a = band(r,3), band(g,3), band(b,3), band(a,3)
       r,g,b = lshift(r,6), lshift(g,4), lshift(b,2)
@@ -155,7 +164,7 @@ function love.run()
       Data[DataPos] = strChar(byte)
       DataPos = DataPos + 1
       
-      return r,g,b,a
+      return r/255,g/255,b/255,a/255
       
     end)
     
@@ -242,5 +251,5 @@ function love.run()
   print("--================Job Finished================--")
   print("--============================================--")
   
-  return 0
+  return runLoop(0)
 end
